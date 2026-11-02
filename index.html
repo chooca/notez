@@ -127,7 +127,7 @@
         
         <!-- Header -->
         <div class="p-6 pb-4 flex justify-between items-center">
-            <h1 class="text-3xl font-bold font-heading neon-text flex items-center gap-3">
+            <h1 id="mainAppTitle" class="text-3xl font-bold font-heading neon-text flex items-center gap-3">
                 <i class="fas fa-heartbeat text-pink-500 drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]"></i> Notez
             </h1>
             <div class="flex gap-2">
@@ -136,6 +136,9 @@
                 </button>
                 <button onclick="exportData()" class="w-10 h-10 flex justify-center items-center text-gray-400 hover:text-fuchsia-400 hover:bg-[#1a103c] rounded-full transition-all" title="Export JSON">
                     <i class="fas fa-file-export"></i>
+                </button>
+                <button onclick="toggleArchiveView()" id="btnToggleArchive" class="w-10 h-10 flex justify-center items-center text-gray-400 hover:text-yellow-400 hover:bg-[#1a103c] rounded-full transition-all" title="View Archive">
+                    <i class="fas fa-archive"></i>
                 </button>
                 <button onclick="confirmWipe()" class="w-10 h-10 flex justify-center items-center text-gray-400 hover:text-red-400 hover:bg-[#1a103c] rounded-full transition-all" title="Wipe All">
                     <i class="fas fa-power-off"></i>
@@ -193,13 +196,6 @@
         <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
         <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-fuchsia-900/20 rounded-full filter blur-[100px] pointer-events-none"></div>
 
-        <!-- Mobile Header (Back button) -->
-        <div class="md:hidden flex items-center p-4 border-b border-[#2a1a5c] relative z-10">
-            <button onclick="closeMobileEditor()" class="text-gray-400 hover:text-white flex items-center gap-2 font-medium bg-[#1a103c] px-4 py-2 rounded-xl">
-                <i class="fas fa-arrow-left"></i> Back
-            </button>
-        </div>
-
         <!-- Empty State -->
         <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-gray-500 p-8 text-center relative z-10">
             <div class="w-32 h-32 mb-6 rounded-full bg-[#0a0616] border border-[#2a1a5c] flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)] relative">
@@ -213,34 +209,43 @@
         <!-- Active Editor -->
         <div id="activeEditor" class="hidden flex-1 flex flex-col h-full relative z-10">
             
-            <!-- Editor Toolbar -->
-            <div class="px-8 py-5 border-b border-white/5 flex justify-between items-center gap-4">
-                <div class="flex items-center gap-6">
-                    <!-- Importance -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Status</span>
-                        <div class="flex bg-[#0a0616] rounded-xl p-1 border border-[#2a1a5c]">
-                            <button onclick="setImportance(1)" id="btnImp1" class="px-4 py-1.5 rounded-lg text-gray-500 hover:text-white transition-all text-xs font-bold tracking-wide">LOW</button>
-                            <button onclick="setImportance(2)" id="btnImp2" class="px-4 py-1.5 rounded-lg text-gray-500 hover:text-white transition-all text-xs font-bold tracking-wide">MED</button>
-                            <button onclick="setImportance(3)" id="btnImp3" class="px-4 py-1.5 rounded-lg text-gray-500 hover:text-white transition-all text-xs font-bold tracking-wide">HIGH</button>
-                        </div>
-                    </div>
-
+            <!-- Editor Top Header (Unified) -->
+            <div class="px-4 md:px-8 py-4 border-b border-white/5 flex justify-between items-center gap-2">
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <!-- Mobile Header (Back button) -->
+                    <button onclick="closeMobileEditor()" class="md:hidden text-gray-400 hover:text-white flex items-center gap-2 font-medium bg-[#1a103c] px-3 sm:px-4 py-2 rounded-xl transition-all shadow-sm border border-transparent hover:border-[#4a2f9c]">
+                        <i class="fas fa-arrow-left"></i> <span class="hidden sm:inline">Back</span>
+                    </button>
                     <!-- Auto-save status -->
-                    <div id="saveStatus" class="text-xs font-medium text-gray-500 flex items-center gap-2 bg-[#0a0616] px-3 py-1.5 rounded-xl border border-white/5">
+                    <div id="saveStatus" class="text-xs font-medium text-gray-500 flex items-center gap-2 bg-[#0a0616] px-3 py-2 md:py-1.5 rounded-xl border border-white/5">
                         <i class="fas fa-check-circle text-green-500 drop-shadow-[0_0_5px_rgba(34,197,94,0.5)]"></i> Synced
                     </div>
                 </div>
 
-                <div class="flex gap-2">
-                    <button onclick="deleteActiveNote()" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-[#1a103c] rounded-xl transition-all shadow-sm border border-transparent hover:border-red-900/50" title="Delete Trace">
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="toggleArchiveNote()" id="editorArchiveBtn" style="display: none;" class="px-3 sm:px-4 h-10 flex items-center justify-center gap-2 text-gray-400 hover:text-yellow-400 bg-[#1a103c] rounded-xl transition-all shadow-sm border border-transparent hover:border-yellow-900/50 font-bold tracking-wide text-xs uppercase" title="Archive Trace">
+                        <i class="fas fa-archive text-sm"></i> <span class="hidden sm:inline">Archive</span>
+                    </button>
+                    <button type="button" onclick="deleteActiveNote()" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-[#1a103c] rounded-xl transition-all shadow-sm border border-transparent hover:border-red-900/50" title="Delete Trace">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
 
+            <!-- Editor Secondary Toolbar (Status) -->
+            <div class="px-4 md:px-8 py-3 border-b border-white/5 flex items-center overflow-x-auto scrollbar-hide">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Status</span>
+                    <div class="flex bg-[#0a0616] rounded-xl p-1 border border-[#2a1a5c]">
+                        <button type="button" onclick="setImportance(1)" id="btnImp1" class="px-4 py-1.5 rounded-lg text-gray-500 hover:text-white transition-all text-xs font-bold tracking-wide">LOW</button>
+                        <button type="button" onclick="setImportance(2)" id="btnImp2" class="px-4 py-1.5 rounded-lg text-gray-500 hover:text-white transition-all text-xs font-bold tracking-wide">MED</button>
+                        <button type="button" onclick="setImportance(3)" id="btnImp3" class="px-4 py-1.5 rounded-lg text-gray-500 hover:text-white transition-all text-xs font-bold tracking-wide">HIGH</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Editor Title & Meta -->
-            <div class="px-8 md:px-12 pt-10 pb-6 flex-shrink-0">
+            <div class="px-4 md:px-12 pt-8 pb-6 flex-shrink-0">
                 <input type="text" id="noteTitle" placeholder="Enter Title..." 
                     class="w-full text-4xl md:text-5xl font-bold font-heading text-white placeholder-gray-700 bg-transparent border-none p-0 focus:ring-0 mb-6 drop-shadow-md">
                 
@@ -282,6 +287,7 @@
         let searchTimeout = null;
         let saveTimeout = null;
         let isSaving = false;
+        let viewingArchive = false;
 
         // --- CRYPTOGRAPHY UTILITIES (AES-GCM) ---
         const cryptoUtils = {
@@ -401,6 +407,8 @@
                 masterPassword = pwdInput;
                 document.getElementById('modalBackdrop').classList.add('hidden');
                 
+                autoArchiveOldNotes();
+                
                 notes.sort((a, b) => b.updatedAt - a.updatedAt);
                 
                 updateKnownTags();
@@ -419,6 +427,24 @@
         }
 
         // --- CORE LOGIC ---
+        function autoArchiveOldNotes() {
+            const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            let changed = false;
+
+            notes.forEach(note => {
+                if (!note.isArchived && (now - note.updatedAt) > THIRTY_DAYS_MS) {
+                    note.isArchived = true;
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                saveToStorage();
+                setTimeout(() => showToast('Inactive traces older than 30 days were auto-archived.'), 1000);
+            }
+        }
+
         async function saveToStorage() {
             if (!masterPassword) return;
             isSaving = true;
@@ -447,6 +473,9 @@
                 notes[noteIndex].title = document.getElementById('noteTitle').value || 'Unnamed Trace';
                 notes[noteIndex].content = document.getElementById('noteContent').value;
                 notes[noteIndex].updatedAt = Date.now();
+                
+                // Update visibility of the archive button while typing
+                updateArchiveButtonUI(notes[noteIndex]);
                 
                 clearTimeout(saveTimeout);
                 saveTimeout = setTimeout(() => {
@@ -477,6 +506,7 @@
                 content: '',
                 tags: [],
                 importance: 2,
+                isArchived: false,
                 createdAt: Date.now(),
                 updatedAt: Date.now()
             };
@@ -487,8 +517,85 @@
             document.getElementById('searchInput').value = '';
             document.getElementById('filterCategory').value = '';
             
-            renderNotesList();
+            // Switch back to active view if a new note is created while in archive
+            if(viewingArchive) {
+                toggleArchiveView();
+            } else {
+                renderNotesList();
+            }
+            
             openNote(newNote.id);
+        }
+
+        function toggleArchiveView() {
+            viewingArchive = !viewingArchive;
+            const btn = document.getElementById('btnToggleArchive');
+            const title = document.getElementById('mainAppTitle');
+            
+            if (viewingArchive) {
+                btn.innerHTML = '<i class="fas fa-inbox"></i>';
+                btn.title = "View Active Traces";
+                btn.classList.add('text-yellow-400');
+                title.innerHTML = '<i class="fas fa-archive text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]"></i> Archive';
+            } else {
+                btn.innerHTML = '<i class="fas fa-archive"></i>';
+                btn.title = "View Archive";
+                btn.classList.remove('text-yellow-400');
+                title.innerHTML = '<i class="fas fa-heartbeat text-pink-500 drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]"></i> Notez';
+            }
+            
+            activeNoteId = null;
+            showEmptyState();
+            renderNotesList();
+        }
+
+        function toggleArchiveNote() {
+            if (!activeNoteId) return; // Represents the currently open edit ID
+            const note = notes.find(n => n.id === activeNoteId);
+            if (!note) return;
+
+            // Toggle archived state
+            note.isArchived = !note.isArchived;
+            note.updatedAt = Date.now();
+            
+            // Save the notes
+            saveToStorage();
+            showToast(note.isArchived ? 'Trace archived' : 'Trace restored to dashboard', 'success');
+            
+            // Close the editor panel and return to the main dashboard/empty state
+            activeNoteId = null;
+            showEmptyState();
+            if (window.innerWidth < 768) {
+                closeMobileEditor();
+            }
+            
+            // Re-render dashboard
+            renderNotesList();
+        }
+
+        function updateArchiveButtonUI(note) {
+            const btn = document.getElementById('editorArchiveBtn');
+            
+            // Hide the button for completely new/blank notes
+            if ((note.title === '' || note.title === 'Unnamed Trace') && note.content === '') {
+                btn.style.display = 'none';
+                return;
+            } else {
+                btn.style.display = 'flex';
+            }
+
+            // Ensure the button's text correctly displays 'Archive' or 'Unarchive'
+            if (note.isArchived) {
+                btn.innerHTML = '<i class="fas fa-box-open text-sm"></i> <span class="hidden sm:inline">Unarchive</span>';
+                btn.title = "Unarchive Trace";
+                // Reset classname to ensure correct styling and remove conflicts
+                btn.className = "px-3 sm:px-4 h-10 flex items-center justify-center gap-2 text-blue-400 hover:text-blue-300 bg-[#1a103c] rounded-xl transition-all shadow-sm border border-blue-900/50 hover:border-blue-700/50 font-bold tracking-wide text-xs uppercase";
+            } else {
+                btn.innerHTML = '<i class="fas fa-archive text-sm"></i> <span class="hidden sm:inline">Archive</span>';
+                btn.title = "Archive Trace";
+                // Reset classname to ensure correct styling and remove conflicts
+                btn.className = "px-3 sm:px-4 h-10 flex items-center justify-center gap-2 text-gray-400 hover:text-yellow-400 bg-[#1a103c] rounded-xl transition-all shadow-sm border border-transparent hover:border-yellow-900/50 font-bold tracking-wide text-xs uppercase";
+            }
         }
 
         function deleteActiveNote() {
@@ -690,6 +797,9 @@
             listEl.innerHTML = '';
 
             const filteredNotes = notes.filter(note => {
+                const isNoteArchived = Boolean(note.isArchived);
+                if (isNoteArchived !== viewingArchive) return false;
+
                 const matchesSearch = note.title.toLowerCase().includes(searchQ) || note.content.toLowerCase().includes(searchQ);
                 const matchesTag = filterTag ? note.tags.includes(filterTag) : true;
                 return matchesSearch && matchesTag;
@@ -710,7 +820,8 @@
             });
 
             if (filteredNotes.length === 0) {
-                listEl.innerHTML = `<div class="p-10 text-center text-gray-500 text-sm border border-dashed border-[#2a1a5c] rounded-2xl mx-2 bg-[#0a0616]">No traces found.</div>`;
+                const emptyMsg = viewingArchive ? "Archive is empty." : "No traces found.";
+                listEl.innerHTML = `<div class="p-10 text-center text-gray-500 text-sm border border-dashed border-[#2a1a5c] rounded-2xl mx-2 bg-[#0a0616]">${emptyMsg}</div>`;
                 return;
             }
 
@@ -790,6 +901,7 @@
 
             buildTagsUI();
             updateImportanceUI(note.importance || 2);
+            updateArchiveButtonUI(note);
             updateSaveUI('saved');
             renderNotesList(false);
         }
